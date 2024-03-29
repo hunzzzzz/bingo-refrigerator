@@ -14,9 +14,6 @@ class SwaggerConfig {
     @Bean
     fun openAPI(): OpenAPI {
         return OpenAPI()
-            .addServersItem(
-                Server().url("/")
-            )
             .addSecurityItem(
                 SecurityRequirement().addList("Bearer Authentication")
             )

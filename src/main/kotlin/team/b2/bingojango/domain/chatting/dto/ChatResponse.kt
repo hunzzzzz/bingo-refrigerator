@@ -8,6 +8,6 @@ data class ChatResponse(
     val nickname: String,
     val content: String,
     val status: ChatStatus,
-    val createdAt: ZonedDateTime,
-    val isMyChat: Boolean = false,
+    val createdAt: String,
+    val userId: Long,
 )

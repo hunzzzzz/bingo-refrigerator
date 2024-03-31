@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import team.b2.bingojango.domain.chatting.dto.ChatRequest
@@ -22,6 +23,7 @@ import team.b2.bingojango.global.security.jwt.JwtAuthenticationToken
 import team.b2.bingojango.global.security.util.UserPrincipal
 
 @Tag(name = "chat", description = "채팅")
+//@RequestMapping("/refrigerator/{refrigeratorId}")
 @RestController
 class ChatController(
     private val chatService: ChatService,
@@ -62,7 +64,7 @@ class ChatController(
     // 채팅 목록 가져오기 v1
     @Operation(summary = "채팅 내역 출력 (임시)")
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/v1/{chatRoomId}")
+    @GetMapping("/v1/chatroom/{chatRoomId}")
     fun getAllChat(
         @PathVariable chatRoomId: Long,
         @AuthenticationPrincipal userPrincipal: UserPrincipal
@@ -75,7 +77,7 @@ class ChatController(
     // 채팅 목록 가져오기 v2 커서 페이지네이션 적용, cursor는 불러온 메시지 중 가장 첫번째 id값
     @Operation(summary = "채팅 내역 출력 (커서 페이지네이션)")
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/v2/{chatRoomId}")
+    @GetMapping("/v2/chatroom/{chatRoomId}")
     fun getAllChat2(
         @AuthenticationPrincipal userPrincipal: UserPrincipal,
         @PathVariable chatRoomId: Long,
@@ -88,13 +90,24 @@ class ChatController(
     }
 
     // 테스트용 채팅방 목록 호출 (추후 삭제)
-    @Operation(summary = "채팅방 목록 호출 (임시)")
-    @GetMapping("/v1/chatroom")
+    @Operation(summary = "구독한 채팅방 번호들 호출 (임시)")
+    @GetMapping("/v1/chatroom/list")
     fun getAllChatRoom(
         @AuthenticationPrincipal userPrincipal: UserPrincipal,
-    ): ResponseEntity<List<ChatRoom>> {
+    ): ResponseEntity<List<Long>> {
         return ResponseEntity
             .status(HttpStatus.OK)
             .body(chatService.getAllChatRoom(userPrincipal))
+    }
+
+    @Operation(summary = "냉장고 id로 채팅방 id 호출")
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/v1/chatroom/get-number")
+    fun getChatRoomNumber(
+        refrigeratorId: Long
+    ): ResponseEntity<Long>{
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(chatService.getChatRoomNumber(refrigeratorId))
     }
 }

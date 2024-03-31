@@ -12,4 +12,6 @@ interface ChatRoomRepository : JpaRepository<ChatRoom, Long> {
 
     // 테스트용, 추후 삭제 필요
     fun findAllByRefrigerator(refrigerator: Refrigerator): List<ChatRoom>
+
+    fun findByRefrigeratorId(refrigeratorId: Long): ChatRoom
 }

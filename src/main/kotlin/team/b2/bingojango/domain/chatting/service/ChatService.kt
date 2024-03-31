@@ -7,6 +7,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.messaging.simp.SimpMessageSendingOperations
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.ui.Model
 import team.b2.bingojango.domain.chatting.dto.ChatRequest
 import team.b2.bingojango.domain.chatting.dto.ChatResponse
 import team.b2.bingojango.domain.chatting.model.Chat
@@ -20,17 +21,18 @@ import team.b2.bingojango.domain.user.repository.UserRepository
 import team.b2.bingojango.global.exception.cases.ModelNotFoundException
 import team.b2.bingojango.global.security.util.UserPrincipal
 import team.b2.bingojango.global.util.EntityFinder
+import java.time.format.DateTimeFormatter
 
 @Service
 class ChatService(
     private val chatRepository: ChatRepository,
     private val memberRepository: MemberRepository,
-    private val userRepository: UserRepository,
     private val chatRoomRepository: ChatRoomRepository,
     private val messageTemplate: SimpMessageSendingOperations,
     private val channelTopic: ChannelTopic,
     private val redisTemplate: RedisTemplate<String, Any>,
     private val entityFinder: EntityFinder,
+    private val userRepository: UserRepository,
 ) {
 
     // 채팅 전송 v1, 단일 서버
@@ -91,9 +93,8 @@ class ChatService(
         if (member.chatRoom.id != chatRoomId) throw IllegalArgumentException("냉장고의 멤버가 아니에요.")
         else {
             val chats = chatRepository.findAllByChatRoomId(chatRoomId)
-
             return chats.map {
-                toResponse(it, user)
+                toResponse(it, it.member.user)
             }
         }
     }
@@ -120,10 +121,14 @@ class ChatService(
     }
 
     // 테스트용 채팅방 불러오기 (추후 삭제)
-    fun getAllChatRoom(userPrincipal: UserPrincipal): List<ChatRoom> {
+    fun getAllChatRoom(userPrincipal: UserPrincipal): List<Long> {
         val members = memberRepository.findAllByUserId(userPrincipal.id)
-        val chatRooms = members.map { it.chatRoom }
+        val chatRooms = members.map { it.chatRoom.id!! }
         return chatRooms
+    }
+
+    fun getChatRoomNumber(refrigeratorId: Long):Long{
+        return chatRoomRepository.findByRefrigeratorId(refrigeratorId).id ?: throw ModelNotFoundException("chatRoomId")
     }
 
     // 채팅방 ID에서 채팅방 정보 취득
@@ -141,7 +146,7 @@ class ChatService(
             content = chat.content,
             nickname = chat.member.user.nickname,
             status = chat.status,
-            createdAt = chat.createdAt,
-            isMyChat = chat.member.user.id == user.id
+            createdAt = chat.createdAt.format(DateTimeFormatter.ofPattern("M/d H:mm")),
+            userId = user.id!!,
         )
 }

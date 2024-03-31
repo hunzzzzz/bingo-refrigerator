@@ -8,6 +8,7 @@ import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.cors.CorsUtils
 import team.b2.bingojango.global.security.jwt.JwtAuthenticationFilter
 
 @Configuration
@@ -42,6 +43,7 @@ class SecurityConfig(
             .headers { it.frameOptions { foc -> foc.disable() } }
             .authorizeHttpRequests {
                 it.requestMatchers(*allowedUrls).permitAll()
+//                    .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                     .requestMatchers(*anonymousUrls).anonymous()
                     .anyRequest().authenticated()
             }

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Chat Application</h2>
+    <div id="loginForm">
+        <h3>Login</h3>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" id="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" required>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="performLogin()">Login</button>
+    </div>
+
+    <!-- Chat Rooms Section -->
+    <div id="chatRooms" style="display: none;">
+        <h3>Chat Rooms</h3>
+        <ul id="chatRoomList" class="list-group"></ul>
+    </div>
+
+    <!-- 채팅 목록 및 입력 섹션 -->
+    <div id="chatMessagesSection" style="display: none;">
+        <h3>Chat Messages</h3>
+        <ul id="chatMessagesList" class="list-group"></ul>
+
+        <!-- 채팅 입력 폼 -->
+        <div id="chatForm" style="display: none;">
+            <div class="form-group">
+                <label for="messageContent">Message:</label>
+                <input type="text" class="form-control" id="messageContent" required>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="sendMessageToChatroom(document.getElementById('messageContent').value)">
+                Send Message
+            </button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <script>
+        // var connectingElement = document.querySelector('.connecting');
+        // var url = new URL(location.href).searchParams;
+        // var chatRoomId = url.get('chatRoomId');
+        let currentChatRoomId
+        let stompClient
+        let accessToken
+
+        function connect(chatRoomId) {
+            console.log('connect함수 시작이에요');
+            const socket = new SockJS('http://localhost:8080/ws');
+            let headers = {Authorization:`${accessToken}`}
+            stompClient = Stomp.over(socket);
+            console.log('connect함수 대충 끝나고 onconnect/onerror로 넘길거에요')
+            stompClient.connect(headers, onConnected, onError)
+            console.log('onconnect/onerror로 넘기고 connect함수 끝났어요')
+        }
+
+        function onConnected() {
+            const chatRoomId2 = currentChatRoomId
+            console.log('Connected to WebSocket onConnected함수에용');
+                stompClient.subscribe(`/sub/chatroom/` + chatRoomId2, function (message) {
+                    const chatMessage = JSON.parse(message.body);
+                    console.log('Received message:', chatMessage);
+                    // Perform actions based on the received message
+                });
+        }
+        function onError(error) {
+            console.log('웹소켓 연결에 오류 나서 새로고침이 필요해요')
+        }
+
+        function sendMessageToChatroom() {
+            const content = document.getElementById('messageContent').value;
+            // const chatRoomId = document.getElementById('chatRoomId').value;
+            const chatRoomId = currentChatRoomId
+            console.log("current chat room id:", chatRoomId)
+            const message = {
+                chatRoomId: chatRoomId,
+                content: content
+            };
+            // let headers= {Authorization:`${accessToken}`}
+
+            stompClient.send("/pub/chatroom/sendMessage", {}, JSON.stringify(message));
+            document.getElementById('messageContent').value = '';
+        }
+
+        function performLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            fetch('/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    accessToken = data.accessToken;
+
+                    window.fetch = (function (originalFetch) {
+                        return function (url, options) {
+                            options.headers = options.headers || {};
+                            options.headers.Authorization = `Bearer ${accessToken}`;
+                            return originalFetch(url, options);
+                        };
+                    })(window.fetch);
+
+                    getChatRooms(); // Call getChatRooms after successful login
+                })
+                .catch(error => {
+                    console.error('Login failed:', error);
+                    // Handle login failure
+                });
+        }
+
+        function getChatRooms() {
+            fetch('/v1/chatroom', {
+                method: 'GET',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    displayChatRooms(data);
+                })
+                .catch(error => {
+                    console.error('Failed to get chat rooms:', error);
+                });
+        }
+
+        function displayChatRooms(chatRooms) {
+            const chatRoomList = document.getElementById('chatRoomList');
+            chatRoomList.innerHTML = '';
+
+            chatRooms.forEach(room => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.textContent = `Chat Room ID: ${room.id} - ${room.name}`;
+
+                listItem.addEventListener('click', () => enterChatRoom(room.id));
+
+                chatRoomList.appendChild(listItem);
+            });
+
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('chatRooms').style.display = 'block';
+        }
+
+        function enterChatRoom(chatRoomId) {
+            currentChatRoomId = chatRoomId;
+            console.log(`Entering chat room with ID: ${chatRoomId}`);
+            document.getElementById('chatRooms').style.display = 'none';
+            connect(chatRoomId)
+            getChatMessages(chatRoomId);
+        }
+
+        function getChatMessages(chatRoomId) {
+            fetch(`/v1/${chatRoomId}`, {
+                method: 'GET',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    displayChatMessages(data);
+                })
+                .catch(error => {
+                    console.error('Failed to get chat messages:', error);
+                });
+        }
+
+        function displayChatMessages(chatMessages) {
+            const chatMessagesList = document.getElementById('chatMessagesList');
+            chatMessagesList.innerHTML = '';
+
+            chatMessages.forEach(message => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.textContent = `${message.nickname}: ${message.content} (${message.createdAt})`;
+                chatMessagesList.appendChild(listItem);
+            });
+
+            document.getElementById('chatMessagesSection').style.display = 'block';
+            document.getElementById('chatForm').style.display = 'block';
+        }
+
+    </script>
+</div>
+</body>
+</html>

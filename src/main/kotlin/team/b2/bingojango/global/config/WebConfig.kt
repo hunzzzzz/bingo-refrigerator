@@ -9,7 +9,7 @@ import team.b2.bingojango.global.oauth.api.oauth2login.converter.OAuth2ProviderC
 
 @Configuration
 class WebConfig(
-    @Value("\${root.front}") private val frontRootURI: String,
+    @Value("\${root.uri}") private val rootURI: String,
 ) : WebMvcConfigurer {
 
     override fun addFormatters(registry: FormatterRegistry) {
@@ -18,7 +18,7 @@ class WebConfig(
 
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**") // 모든 경로에 대해
-            .allowedOrigins("http://localhost:9090", frontRootURI) // 이 출처로부터의 요청만 허용
+            .allowedOrigins("http://localhost", rootURI) // 이 출처로부터의 요청만 허용
             .allowedMethods("*") // 모든 HTTP 메소드 허용
             .allowCredentials(true) // 쿠키를 포함한 요청 허용
     }

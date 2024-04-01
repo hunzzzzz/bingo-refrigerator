@@ -40,6 +40,7 @@ class FoodService(
         return foodRepository.findByRefrigeratorId(refrigeratorId)
                 .map {
             FoodResponse(
+                    id = it.id!!,
                     category = it.category.name,
                     name = it.name,
                     expirationDate = ZonedDateTimeConverter.convertZonedDateTimeFromStringDateTime(it.expirationDate),

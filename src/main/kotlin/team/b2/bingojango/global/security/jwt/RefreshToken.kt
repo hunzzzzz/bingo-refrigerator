@@ -9,7 +9,7 @@ data class RefreshToken(
     @ManyToOne
     @JoinColumn(name = "user_id")
     val user: User,
-    val refreshToken: String
+    var refreshToken: String
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

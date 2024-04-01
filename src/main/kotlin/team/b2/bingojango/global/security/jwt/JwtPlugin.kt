@@ -65,7 +65,8 @@ class JwtPlugin(
     //토큰 저장
     @Transactional
     fun storeToken(user: User, refreshToken: String) {
-        tokenRepository.save(RefreshToken(user, refreshToken))
+        val existsToken = tokenRepository.findByUser(user)
+        if (existsToken == null) tokenRepository.save(RefreshToken(user, refreshToken))
     }
 
     //토큰 삭제

@@ -5,4 +5,5 @@ import team.b2.bingojango.domain.user.model.User
 
 interface TokenRepository : JpaRepository<RefreshToken, Long> {
     fun findAllByUser(user: User): List<RefreshToken>?
+    fun findByUser(user: User): RefreshToken?
 }

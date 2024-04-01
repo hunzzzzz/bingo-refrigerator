@@ -34,6 +34,7 @@ class Food(
 
     fun toResponse(): FoodResponse {
         return FoodResponse(
+            id = id!!,
             category = category.name,
             name = name,
             expirationDate = ZonedDateTimeConverter.convertZonedDateTimeFromStringDateTime(expirationDate),

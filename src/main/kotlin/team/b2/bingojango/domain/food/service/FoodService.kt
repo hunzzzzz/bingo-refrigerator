@@ -38,15 +38,15 @@ class FoodService(
     fun getFoodList(userPrincipal: UserPrincipal, refrigeratorId: Long): List<FoodResponse> {
         validateAccessToRefrigerator(userPrincipal, refrigeratorId)
         return foodRepository.findByRefrigeratorId(refrigeratorId)
-                .map {
-            FoodResponse(
+            .map {
+                FoodResponse(
                     id = it.id!!,
                     category = it.category.name,
                     name = it.name,
                     expirationDate = ZonedDateTimeConverter.convertZonedDateTimeFromStringDateTime(it.expirationDate),
                     count = it.count,
-            )
-        }
+                )
+            }
     }
 
     /*
@@ -150,7 +150,6 @@ class FoodService(
         val food = findFood(refrigeratorId, foodId)
         foodRepository.delete(food)
     }
-
 
     // [내부 메서드] 존재하는 냉장고인지 확인 (soft delete 된 냉장고 제외)
     // 로그인한 유저가 가지고 있는 냉장고 맞는지 검증

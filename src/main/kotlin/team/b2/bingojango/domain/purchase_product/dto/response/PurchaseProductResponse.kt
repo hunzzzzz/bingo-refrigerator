@@ -8,7 +8,7 @@ data class PurchaseProductResponse(
 ) {
     companion object {
         fun from(purchaseProduct: PurchaseProduct) = PurchaseProductResponse(
-            foodName = purchaseProduct.product.food.name,
+            foodName = purchaseProduct.product.food?.name ?: purchaseProduct.product.newFoodName ?: "",
             foodCount = purchaseProduct.count
         )
     }

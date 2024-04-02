@@ -9,6 +9,7 @@ import team.b2.bingojango.domain.food.model.Food
 import team.b2.bingojango.domain.member.model.MemberRole
 import team.b2.bingojango.domain.product.model.Product
 import team.b2.bingojango.domain.product.repository.ProductRepository
+import team.b2.bingojango.domain.purchase.dto.response.AddNewFoodInPurchaseRequest
 import team.b2.bingojango.domain.purchase.dto.response.PurchaseResponse
 import team.b2.bingojango.domain.purchase.model.Purchase
 import team.b2.bingojango.domain.purchase.model.PurchaseSort
@@ -63,6 +64,48 @@ class PurchaseService(
                     refrigerator = entityFinder.getRefrigerator(refrigeratorId)
                 )
             )
+            Unit
+        }
+
+    /*
+            [API] 새로운 식품을 n개 만큼 공동구매 신청
+            - 검증 조건 1 : 관리자(STAFF)만 공동구매를 신청할 수 있음
+            - 검증 조건 2 : 다른 관리자가 시작한 공동구매가 있는 경우 신청할 수 없음
+            - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 추가할 수 없음
+     */
+    fun addNewFoodToPurchase(
+        userPrincipal: UserPrincipal,
+        refrigeratorId: Long,
+        request: AddNewFoodInPurchaseRequest
+    ) =
+        getCurrentPurchase(userPrincipal, refrigeratorId).let {
+            if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
+                throw InvalidRoleException()
+            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase().proposedBy != userPrincipal.id)
+                throw AlreadyHaveActivePurchaseException()
+            else if (voteRepository.existsByPurchaseAndRefrigerator(
+                    purchase = getCurrentPurchase(),
+                    refrigerator = entityFinder.getRefrigerator(refrigeratorId)
+                )
+            ) throw AlreadyOnVoteException("추가")
+
+            entityFinder.getRefrigerator(refrigeratorId)
+                .let { refrigerator ->
+                    purchaseProductRepository.save(
+                        PurchaseProduct(
+                            count = request.count,
+                            purchase = it,
+                            product = productRepository.save(
+                                Product(
+                                    food = null,
+                                    refrigerator = refrigerator,
+                                    request.name
+                                )
+                            ),
+                            refrigerator = refrigerator
+                        )
+                    )
+                }
             Unit
         }
 
@@ -175,7 +218,7 @@ class PurchaseService(
     // [내부 메서드] Product 객체 생성
     fun addProduct(food: Food, refrigerator: Refrigerator) =
         productRepository.save(
-            Product(food = food, refrigerator = refrigerator)
+            Product(food = food, refrigerator = refrigerator, newFoodName = null)
         )
 
     // [내부 메서드] 현재 진행 중인(status 가 ACTIVE 한) Purchase 를 리턴 (없으면 예외 처리)

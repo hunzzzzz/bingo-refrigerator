@@ -44,14 +44,14 @@ class PurchaseService(
         getCurrentPurchase(userPrincipal, refrigeratorId).let {
             if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
                 throw InvalidRoleException()
-            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase().proposedBy != userPrincipal.id)
+            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
                 throw AlreadyHaveActivePurchaseException()
-            else if (purchaseProductRepository.findAllByPurchase(getCurrentPurchase())
+            else if (purchaseProductRepository.findAllByPurchase(getCurrentPurchase(refrigeratorId))
                     .map { purchaseProduct -> purchaseProduct.product.food }
                     .contains(entityFinder.getFood(foodId))
             ) throw AlreadyInPurchaseException()
             else if (voteRepository.existsByPurchaseAndRefrigerator(
-                    purchase = getCurrentPurchase(),
+                    purchase = getCurrentPurchase(refrigeratorId),
                     refrigerator = entityFinder.getRefrigerator(refrigeratorId)
                 )
             ) throw AlreadyOnVoteException("추가")
@@ -81,10 +81,10 @@ class PurchaseService(
         getCurrentPurchase(userPrincipal, refrigeratorId).let {
             if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
                 throw InvalidRoleException()
-            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase().proposedBy != userPrincipal.id)
+            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
                 throw AlreadyHaveActivePurchaseException()
             else if (voteRepository.existsByPurchaseAndRefrigerator(
-                    purchase = getCurrentPurchase(),
+                    purchase = getCurrentPurchase(refrigeratorId),
                     refrigerator = entityFinder.getRefrigerator(refrigeratorId)
                 )
             ) throw AlreadyOnVoteException("추가")
@@ -116,10 +116,10 @@ class PurchaseService(
             - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 수정할 수 없음
     */
     fun updateFoodInPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, foodId: Long, count: Int) {
-        if (getCurrentPurchase().proposedBy != userPrincipal.id)
+        if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
             throw InvalidRoleException()
         else if (voteRepository.existsByPurchaseAndRefrigerator(
-                purchase = getCurrentPurchase(),
+                purchase = getCurrentPurchase(refrigeratorId),
                 refrigerator = entityFinder.getRefrigerator(refrigeratorId)
             )
         ) throw AlreadyOnVoteException("삭제")
@@ -127,7 +127,7 @@ class PurchaseService(
         (purchaseProductRepository.findByRefrigeratorAndProductAndPurchase(
             refrigerator = entityFinder.getRefrigerator(refrigeratorId),
             product = getProduct(foodId, refrigeratorId),
-            purchase = getCurrentPurchase()
+            purchase = getCurrentPurchase(refrigeratorId)
         ) ?: throw ModelNotFoundException("식품")).updateCount(count)
     }
 
@@ -138,10 +138,10 @@ class PurchaseService(
             - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 삭제할 수 없음
      */
     fun deleteFoodFromPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, foodId: Long) {
-        if (getCurrentPurchase().proposedBy != userPrincipal.id)
+        if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
             throw InvalidRoleException()
         else if (voteRepository.existsByPurchaseAndRefrigerator(
-                purchase = getCurrentPurchase(),
+                purchase = getCurrentPurchase(refrigeratorId),
                 refrigerator = entityFinder.getRefrigerator(refrigeratorId)
             )
         ) throw AlreadyOnVoteException("삭제")
@@ -150,14 +150,14 @@ class PurchaseService(
             purchaseProductRepository.findByRefrigeratorAndProductAndPurchase(
                 refrigerator = entityFinder.getRefrigerator(refrigeratorId),
                 product = getProduct(foodId, refrigeratorId),
-                purchase = getCurrentPurchase()
+                purchase = getCurrentPurchase(refrigeratorId)
             ) ?: throw ModelNotFoundException("식품")
         )
     }
 
     // [API] 현재 진행 중인 Purchase 를 출력
     fun showPurchase(refrigeratorId: Long) =
-        getCurrentPurchase()
+        getCurrentPurchase(refrigeratorId)
             .let {
                 PurchaseResponse.from(
                     purchase = it,
@@ -222,13 +222,15 @@ class PurchaseService(
         )
 
     // [내부 메서드] 현재 진행 중인(status 가 ACTIVE 한) Purchase 를 리턴 (없으면 예외 처리)
-    private fun getCurrentPurchase() =
-        purchaseRepository.findAll().firstOrNull { it.status == PurchaseStatus.ACTIVE }
+    private fun getCurrentPurchase(refrigeratorId: Long) =
+        purchaseRepository.findAllByRefrigerator(entityFinder.getRefrigerator(refrigeratorId))
+            .firstOrNull { it.status == PurchaseStatus.ACTIVE }
             ?: throw NoCurrentPurchaseException()
 
     // [내부 메서드] 현재 진행 중인(status 가 ACTIVE 한) Purchase 를 리턴 (없으면 새로운 Purchase 객체 생성 후 리턴)
     private fun getCurrentPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long) =
-        purchaseRepository.findAll().firstOrNull { it.status == PurchaseStatus.ACTIVE }
+        purchaseRepository.findAllByRefrigerator(entityFinder.getRefrigerator(refrigeratorId))
+            .firstOrNull { it.status == PurchaseStatus.ACTIVE }
             ?: makePurchase(userPrincipal, entityFinder.getRefrigerator(refrigeratorId))
 
     // [내부 메서드] Purchase 객체 생성

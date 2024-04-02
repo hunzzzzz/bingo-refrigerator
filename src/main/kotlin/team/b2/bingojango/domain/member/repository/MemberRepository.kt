@@ -10,7 +10,7 @@ import team.b2.bingojango.domain.user.model.User
 
 @Repository
 interface MemberRepository : JpaRepository<Member, Long> {
-    fun countByRole(role: MemberRole): Long
+    fun countByRoleAndRefrigerator(role: MemberRole, refrigerator: Refrigerator): Long
 
     fun findByUserAndRefrigerator(user: User, refrigerator: Refrigerator): Member?
 

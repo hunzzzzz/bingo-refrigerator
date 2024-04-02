@@ -212,8 +212,7 @@ class PurchaseService(
         productRepository.findByFoodAndRefrigerator(
             entityFinder.getFood(foodId),
             entityFinder.getRefrigerator(refrigeratorId)
-        )
-            ?: addProduct(entityFinder.getFood(foodId), entityFinder.getRefrigerator(refrigeratorId))
+        ) ?: addProduct(entityFinder.getFood(foodId), entityFinder.getRefrigerator(refrigeratorId))
 
     // [내부 메서드] Product 객체 생성
     fun addProduct(food: Food, refrigerator: Refrigerator) =

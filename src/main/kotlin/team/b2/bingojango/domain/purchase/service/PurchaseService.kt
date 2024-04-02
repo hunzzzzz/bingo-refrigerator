@@ -115,18 +115,18 @@ class PurchaseService(
             - 검증 조건 2 : 현재 공동구매에 존재하는 식품만 수정할 수 있음
             - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 수정할 수 없음
     */
-    fun updateFoodInPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, foodId: Long, count: Int) {
+    fun updateFoodInPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, productId: Long, count: Int) {
         if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
             throw InvalidRoleException()
         else if (voteRepository.existsByPurchaseAndRefrigerator(
                 purchase = getCurrentPurchase(refrigeratorId),
                 refrigerator = entityFinder.getRefrigerator(refrigeratorId)
             )
-        ) throw AlreadyOnVoteException("삭제")
+        ) throw AlreadyOnVoteException("수정")
 
         (purchaseProductRepository.findByRefrigeratorAndProductAndPurchase(
             refrigerator = entityFinder.getRefrigerator(refrigeratorId),
-            product = getProduct(foodId, refrigeratorId),
+            product = entityFinder.getProduct(productId),
             purchase = getCurrentPurchase(refrigeratorId)
         ) ?: throw ModelNotFoundException("식품")).updateCount(count)
     }
@@ -137,7 +137,7 @@ class PurchaseService(
             - 검증 조건 2 : 현재 공동구매에 존재하는 식품만 삭제할 수 있음
             - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 삭제할 수 없음
      */
-    fun deleteFoodFromPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, foodId: Long) {
+    fun deleteFoodFromPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, productId: Long) {
         if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
             throw InvalidRoleException()
         else if (voteRepository.existsByPurchaseAndRefrigerator(
@@ -149,7 +149,7 @@ class PurchaseService(
         purchaseProductRepository.delete(
             purchaseProductRepository.findByRefrigeratorAndProductAndPurchase(
                 refrigerator = entityFinder.getRefrigerator(refrigeratorId),
-                product = getProduct(foodId, refrigeratorId),
+                product = entityFinder.getProduct(productId),
                 purchase = getCurrentPurchase(refrigeratorId)
             ) ?: throw ModelNotFoundException("식품")
         )

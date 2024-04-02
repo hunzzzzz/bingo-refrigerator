@@ -6,6 +6,7 @@ import team.b2.bingojango.domain.member.model.MemberRole
 import team.b2.bingojango.domain.member.repository.MemberRepository
 import team.b2.bingojango.domain.purchase.model.PurchaseStatus
 import team.b2.bingojango.domain.purchase.repository.PurchaseRepository
+import team.b2.bingojango.domain.purchase_product.dto.response.PurchaseProductResponse
 import team.b2.bingojango.domain.purchase_product.repository.PurchaseProductRepository
 import team.b2.bingojango.domain.vote.dto.request.VoteRequest
 import team.b2.bingojango.domain.vote.dto.response.VoteResponse
@@ -33,7 +34,9 @@ class VoteService(
                 userId = getCurrentPurchase(refrigeratorId).proposedBy,
                 refrigeratorId = refrigeratorId
             ),
-            numberOfStaff = getNumberOfStaff()
+            numberOfStaff = getNumberOfStaff(),
+            purchaseProductList = purchaseProductRepository.findAllByPurchase(getCurrentPurchase(refrigeratorId))
+                .map { purchaseProduct -> PurchaseProductResponse.from(purchaseProduct) }
         )
 
     /*

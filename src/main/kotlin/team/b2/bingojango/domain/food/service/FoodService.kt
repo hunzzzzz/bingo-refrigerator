@@ -38,15 +38,16 @@ class FoodService(
     fun getFoodList(userPrincipal: UserPrincipal, refrigeratorId: Long): List<FoodResponse> {
         validateAccessToRefrigerator(userPrincipal, refrigeratorId)
         return foodRepository.findByRefrigeratorId(refrigeratorId)
-                .map {
-            FoodResponse(
+            .filter { it.count != null }
+            .map {
+                FoodResponse(
                     id = it.id!!,
-                    category = it.category.name,
+                    category = it.category!!.name,
                     name = it.name,
-                    expirationDate = ZonedDateTimeConverter.convertZonedDateTimeFromStringDateTime(it.expirationDate),
-                    count = it.count,
-            )
-        }
+                    expirationDate = ZonedDateTimeConverter.convertZonedDateTimeFromStringDateTime(it.expirationDate!!),
+                    count = it.count!!,
+                )
+            }
     }
 
     /*

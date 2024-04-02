@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import team.b2.bingojango.domain.purchase.dto.response.AddNewFoodInPurchaseRequest
 import team.b2.bingojango.domain.purchase.model.PurchaseSort
 import team.b2.bingojango.domain.purchase.model.PurchaseStatus
 import team.b2.bingojango.domain.purchase.service.PurchaseService
@@ -28,6 +29,17 @@ class PurchaseController(
         @RequestParam count: Int
     ) =
         ResponseEntity.ok().body(purchaseService.addFoodToPurchase(userPrincipal, refrigeratorId, foodId, count))
+
+    @Operation(summary = "새로운 식품에 대한 같이구매 신청")
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/foods")
+    fun addNewFoodToPurchase(
+        @AuthenticationPrincipal userPrincipal: UserPrincipal,
+        @PathVariable refrigeratorId: Long,
+        @RequestBody addNewFoodInPurchaseRequest: AddNewFoodInPurchaseRequest
+    ) =
+        ResponseEntity.ok()
+            .body(purchaseService.addNewFoodToPurchase(userPrincipal, refrigeratorId, addNewFoodInPurchaseRequest))
 
     @Operation(summary = "공동구매 목록에 포함된 식품의 개수 수정")
     @PreAuthorize("isAuthenticated()")

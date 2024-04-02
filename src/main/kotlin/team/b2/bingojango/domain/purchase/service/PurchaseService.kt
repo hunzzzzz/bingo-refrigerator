@@ -6,9 +6,11 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.b2.bingojango.domain.food.model.Food
+import team.b2.bingojango.domain.food.repository.FoodRepository
 import team.b2.bingojango.domain.member.model.MemberRole
 import team.b2.bingojango.domain.product.model.Product
 import team.b2.bingojango.domain.product.repository.ProductRepository
+import team.b2.bingojango.domain.purchase.dto.response.AddNewFoodInPurchaseRequest
 import team.b2.bingojango.domain.purchase.dto.response.PurchaseResponse
 import team.b2.bingojango.domain.purchase.model.Purchase
 import team.b2.bingojango.domain.purchase.model.PurchaseSort
@@ -26,6 +28,7 @@ import team.b2.bingojango.global.util.EntityFinder
 @Service
 @Transactional
 class PurchaseService(
+    private val foodRepository: FoodRepository,
     private val purchaseRepository: PurchaseRepository,
     private val purchaseProductRepository: PurchaseProductRepository,
     private val productRepository: ProductRepository,
@@ -63,6 +66,49 @@ class PurchaseService(
                     refrigerator = entityFinder.getRefrigerator(refrigeratorId)
                 )
             )
+            Unit
+        }
+
+    /*
+            [API] 새로운 식품을 n개 만큼 공동구매 신청
+            - 검증 조건 1 : 관리자(STAFF)만 공동구매를 신청할 수 있음
+            - 검증 조건 2 : 다른 관리자가 시작한 공동구매가 있는 경우 신청할 수 없음
+            - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 추가할 수 없음
+     */
+    fun addNewFoodToPurchase(
+        userPrincipal: UserPrincipal,
+        refrigeratorId: Long,
+        request: AddNewFoodInPurchaseRequest
+    ) =
+        getCurrentPurchase(userPrincipal, refrigeratorId).let {
+            if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
+                throw InvalidRoleException()
+            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase().proposedBy != userPrincipal.id)
+                throw AlreadyHaveActivePurchaseException()
+            else if (voteRepository.existsByPurchaseAndRefrigerator(
+                    purchase = getCurrentPurchase(),
+                    refrigerator = entityFinder.getRefrigerator(refrigeratorId)
+                )
+            ) throw AlreadyOnVoteException("추가")
+
+
+
+            entityFinder.getRefrigerator(refrigeratorId)
+                .let { refrigerator ->
+                    purchaseProductRepository.save(
+                        PurchaseProduct(
+                            count = request.count,
+                            purchase = it,
+                            product = productRepository.save(
+                                Product(
+                                    food = foodRepository.save(Food(null, request.name, null, null, refrigerator)),
+                                    refrigerator = refrigerator,
+                                )
+                            ),
+                            refrigerator = entityFinder.getRefrigerator(refrigeratorId)
+                        )
+                    )
+                }
             Unit
         }
 

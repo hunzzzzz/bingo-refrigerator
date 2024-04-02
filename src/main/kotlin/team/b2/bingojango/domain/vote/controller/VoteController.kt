@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*
 import team.b2.bingojango.domain.vote.dto.request.VoteRequest
 import team.b2.bingojango.domain.vote.service.VoteService
 import team.b2.bingojango.global.security.util.UserPrincipal
-import java.net.URI
 
 @Tag(name = "vote", description = "투표")
 @RestController
@@ -34,8 +33,7 @@ class VoteController(
         @PathVariable refrigeratorId: Long,
         @Valid @RequestBody voteRequest: VoteRequest
     ) =
-        voteService.startVote(userPrincipal, refrigeratorId, voteRequest)
-            .let { ResponseEntity.created(URI.create("/refrigerator/${it}/vote/current")).body(Unit) }
+        ResponseEntity.ok().body(voteService.startVote(userPrincipal, refrigeratorId, voteRequest))
 
     @Operation(summary = "현재 같이구매 목록에 대한 투표")
     @PreAuthorize("isAuthenticated()")

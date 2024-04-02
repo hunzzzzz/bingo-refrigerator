@@ -18,7 +18,7 @@ import team.b2.bingojango.global.util.EntityFinder
 class MemberService(
     private val memberRepository: MemberRepository,
     private val chatRoomService: ChatRoomService,
-    private val entityFinder: EntityFinder,
+    private val entityFinder: EntityFinder
 ) {
     /*
         [API] 냉장고 참여 멤버 조회
@@ -52,18 +52,13 @@ class MemberService(
     */
     @Transactional
     fun assignStaff(refrigeratorId: Long, memberId: Long, userPrincipal: UserPrincipal) {
-        val existMember =
-            memberRepository.findByUserId(userPrincipal.id) ?: throw ModelNotFoundException("User's member")
-        if (existMember.role != MemberRole.STAFF) {
+        val refrigerator = entityFinder.getRefrigerator(refrigeratorId)
+        if (refrigerator.status != RefrigeratorStatus.NORMAL) throw ModelNotFoundException("Refrigerator")
+        val user = entityFinder.getUser(userPrincipal.id)
+        val userMember =
+            memberRepository.findByUserAndRefrigerator(user,refrigerator) ?: throw ModelNotFoundException("User's member")
+        if (userMember.role != MemberRole.STAFF) {
             throw InvalidRoleException()
-        }
-
-        val userRefrigerator = findRefrigeratorByUserId(userPrincipal.id)
-        if (userRefrigerator.status != RefrigeratorStatus.NORMAL) {
-            throw ModelNotFoundException("Refrigerator")
-        }
-        if (refrigeratorId != userRefrigerator.id) {
-            throw InvalidCredentialException()
         }
 
         val member = memberRepository.findByIdOrNull(memberId) ?: throw ModelNotFoundException("memberId")

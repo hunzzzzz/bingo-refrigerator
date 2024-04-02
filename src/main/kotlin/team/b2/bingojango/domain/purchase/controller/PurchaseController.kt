@@ -43,24 +43,24 @@ class PurchaseController(
 
     @Operation(summary = "공동구매 목록에 포함된 식품의 개수 수정")
     @PreAuthorize("isAuthenticated()")
-    @PutMapping("/foods/{foodId}")
+    @PutMapping("/product/{productId}")
     fun updateFoodInPurchase(
         @AuthenticationPrincipal userPrincipal: UserPrincipal,
         @PathVariable refrigeratorId: Long,
-        @PathVariable foodId: Long,
+        @PathVariable productId: Long,
         @RequestParam count: Int
     ) =
-        ResponseEntity.ok().body(purchaseService.updateFoodInPurchase(userPrincipal, refrigeratorId, foodId, count))
+        ResponseEntity.ok().body(purchaseService.updateFoodInPurchase(userPrincipal, refrigeratorId, productId, count))
 
     @Operation(summary = "같이구매 목록에서 특정 식품 삭제")
     @PreAuthorize("isAuthenticated()")
-    @DeleteMapping("/foods/{foodId}")
+    @DeleteMapping("/product/{productId}")
     fun deleteFoodFromPurchase(
         @AuthenticationPrincipal userPrincipal: UserPrincipal,
         @PathVariable refrigeratorId: Long,
-        @PathVariable foodId: Long
+        @PathVariable productId: Long
     ) =
-        ResponseEntity.ok().body(purchaseService.deleteFoodFromPurchase(userPrincipal, refrigeratorId, foodId))
+        ResponseEntity.ok().body(purchaseService.deleteFoodFromPurchase(userPrincipal, refrigeratorId, productId))
 
     @Operation(summary = "현재 진행 중인 같이구매를 출력")
     @PreAuthorize("isAuthenticated()")

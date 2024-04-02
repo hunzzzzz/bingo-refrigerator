@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.b2.bingojango.domain.food.repository.FoodRepository
 import team.b2.bingojango.domain.member.repository.MemberRepository
+import team.b2.bingojango.domain.product.repository.ProductRepository
 import team.b2.bingojango.domain.refrigerator.repository.RefrigeratorRepository
 import team.b2.bingojango.domain.user.repository.UserRepository
 import team.b2.bingojango.global.exception.cases.ModelNotFoundException
@@ -16,6 +17,7 @@ class EntityFinder(
     private val memberRepository: MemberRepository,
     private val userRepository: UserRepository,
     private val foodRepository: FoodRepository,
+    private val productRepository: ProductRepository
 ) {
     fun getRefrigerator(refrigeratorId: Long) =
         refrigeratorRepository.findByIdOrNull(refrigeratorId) ?: throw ModelNotFoundException("냉장고")
@@ -37,4 +39,7 @@ class EntityFinder(
 
     fun getFood(foodId: Long) =
         foodRepository.findByIdOrNull(foodId) ?: throw ModelNotFoundException("식품")
+
+    fun getProduct(productId: Long) =
+        productRepository.findByIdOrNull(productId) ?: throw ModelNotFoundException("상품")
 }

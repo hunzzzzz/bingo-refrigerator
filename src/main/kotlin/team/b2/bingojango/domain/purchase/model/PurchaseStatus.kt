@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import org.apache.commons.lang3.EnumUtils
 
 enum class PurchaseStatus {
-    ACTIVE, APPROVED, REJECTED;
+    ACTIVE, APPROVED, REJECTED, ON_VOTE;
 
     companion object {
         @JvmStatic

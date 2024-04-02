@@ -34,7 +34,7 @@ class VoteService(
                 userId = getCurrentPurchase(refrigeratorId).proposedBy,
                 refrigeratorId = refrigeratorId
             ),
-            numberOfStaff = getNumberOfStaff(),
+            numberOfStaff = getNumberOfStaff(refrigeratorId),
             purchaseProductList = purchaseProductRepository.findAllByPurchase(getCurrentPurchase(refrigeratorId))
                 .map { purchaseProduct -> PurchaseProductResponse.from(purchaseProduct) }
         )
@@ -52,7 +52,7 @@ class VoteService(
                 throw InvalidRoleException()
             else if (purchaseProductRepository.countByPurchase(it) == 0L)
                 throw UnableToStartVoteException()
-            else if (getNumberOfStaff() == 1L)
+            else if (getNumberOfStaff(refrigeratorId) == 1L)
                 it.updateStatus(PurchaseStatus.APPROVED)
 
             voteRepository.save(
@@ -85,7 +85,7 @@ class VoteService(
             }.let {
                 if (isAccepted) {
                     it.updateVote(entityFinder.getMember(userPrincipal.id, refrigeratorId))
-                    if (getNumberOfStaff() == it.voters.size.toLong())
+                    if (getNumberOfStaff(refrigeratorId) == it.voters.size.toLong())
                         getCurrentPurchase(refrigeratorId).updateStatus(PurchaseStatus.APPROVED)
                 } else
                     getCurrentPurchase(refrigeratorId).updateStatus(PurchaseStatus.REJECTED)
@@ -103,5 +103,6 @@ class VoteService(
             ?: throw NoCurrentVoteException()
 
     // [내부 메서드] 현재 Refrigerator 내 관리자(STAFF) 의 수
-    private fun getNumberOfStaff() = memberRepository.countByRole(MemberRole.STAFF)
+    private fun getNumberOfStaff(refrigeratorId: Long) =
+        memberRepository.countByRoleAndRefrigerator(MemberRole.STAFF, entityFinder.getRefrigerator(refrigeratorId))
 }

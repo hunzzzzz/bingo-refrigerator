@@ -9,11 +9,14 @@ import team.b2.bingojango.domain.refrigerator.model.Refrigerator
 class Product(
     @OneToOne
     @JoinColumn(name = "food_id")
-    val food: Food,
+    val food: Food?,
 
     @ManyToOne
     @JoinColumn(name = "refrigerator_id")
-    val refrigerator: Refrigerator
+    val refrigerator: Refrigerator,
+
+    @Column(name = "new_food_name", nullable = true)
+    val newFoodName: String?
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

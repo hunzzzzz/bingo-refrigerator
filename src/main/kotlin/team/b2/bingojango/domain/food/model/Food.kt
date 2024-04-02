@@ -10,18 +10,18 @@ import java.time.ZonedDateTime
 @Entity
 @Table(name = "Foods")
 class Food(
-    @Column(name = "category", nullable = true)
+    @Column(name = "category", nullable = false)
     @Enumerated(EnumType.STRING)
-    var category: FoodCategory?,
+    var category: FoodCategory,
 
     @Column(name = "name", nullable = false)
     var name: String,
 
-    @Column(name = "expiration_date", nullable = true)
-    var expirationDate: ZonedDateTime?,
+    @Column(name = "expiration_date", nullable = false)
+    var expirationDate: ZonedDateTime,
 
-    @Column(name = "count", nullable = true)
-    var count: Int?,
+    @Column(name = "count", nullable = false)
+    var count: Int,
 
     @ManyToOne
     @JoinColumn(name = "refrigerator_id")
@@ -35,10 +35,10 @@ class Food(
     fun toResponse(): FoodResponse {
         return FoodResponse(
             id = id!!,
-            category = category!!.name,
+            category = category.name,
             name = name,
-            expirationDate = ZonedDateTimeConverter.convertZonedDateTimeFromStringDateTime(expirationDate!!),
-            count = count!!,
+            expirationDate = ZonedDateTimeConverter.convertZonedDateTimeFromStringDateTime(expirationDate),
+            count = count,
         )
     }
 }

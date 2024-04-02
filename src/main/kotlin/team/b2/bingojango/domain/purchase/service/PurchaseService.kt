@@ -6,7 +6,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.b2.bingojango.domain.food.model.Food
-import team.b2.bingojango.domain.food.repository.FoodRepository
 import team.b2.bingojango.domain.member.model.MemberRole
 import team.b2.bingojango.domain.product.model.Product
 import team.b2.bingojango.domain.product.repository.ProductRepository
@@ -28,7 +27,6 @@ import team.b2.bingojango.global.util.EntityFinder
 @Service
 @Transactional
 class PurchaseService(
-    private val foodRepository: FoodRepository,
     private val purchaseRepository: PurchaseRepository,
     private val purchaseProductRepository: PurchaseProductRepository,
     private val productRepository: ProductRepository,
@@ -91,8 +89,6 @@ class PurchaseService(
                 )
             ) throw AlreadyOnVoteException("추가")
 
-
-
             entityFinder.getRefrigerator(refrigeratorId)
                 .let { refrigerator ->
                     purchaseProductRepository.save(
@@ -101,11 +97,12 @@ class PurchaseService(
                             purchase = it,
                             product = productRepository.save(
                                 Product(
-                                    food = foodRepository.save(Food(null, request.name, null, null, refrigerator)),
+                                    food = null,
                                     refrigerator = refrigerator,
+                                    request.name
                                 )
                             ),
-                            refrigerator = entityFinder.getRefrigerator(refrigeratorId)
+                            refrigerator = refrigerator
                         )
                     )
                 }
@@ -221,7 +218,7 @@ class PurchaseService(
     // [내부 메서드] Product 객체 생성
     fun addProduct(food: Food, refrigerator: Refrigerator) =
         productRepository.save(
-            Product(food = food, refrigerator = refrigerator)
+            Product(food = food, refrigerator = refrigerator, newFoodName = null)
         )
 
     // [내부 메서드] 현재 진행 중인(status 가 ACTIVE 한) Purchase 를 리턴 (없으면 예외 처리)

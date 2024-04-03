@@ -38,7 +38,9 @@ class MemberService(
                 name = member.user.nickname,
                 role = member.role,
                 memberId = member.id!!,
-                createdAt = member.createdAt
+                createdAt = member.createdAt,
+                imageUrl = member.user.image,
+                userId = member.user.id!!,
             )
         }
     }

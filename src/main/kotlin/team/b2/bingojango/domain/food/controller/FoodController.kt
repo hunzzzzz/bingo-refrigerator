@@ -105,7 +105,7 @@ class FoodController(
         @AuthenticationPrincipal userPrincipal: UserPrincipal,
         @PathVariable refrigeratorId: Long,
         @RequestParam
-            (defaultValue = "0") page: Int,
+            (defaultValue = "1") page: Int,
         sort: SortFood?,
         category: FoodCategory?,
         count: Int?,

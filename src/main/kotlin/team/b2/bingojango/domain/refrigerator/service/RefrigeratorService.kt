@@ -11,6 +11,7 @@ import team.b2.bingojango.domain.refrigerator.dto.request.AddRefrigeratorRequest
 import team.b2.bingojango.domain.refrigerator.dto.request.JoinByInvitationCodeRequest
 import team.b2.bingojango.domain.refrigerator.dto.request.JoinByPasswordRequest
 import team.b2.bingojango.domain.refrigerator.dto.response.RefrigeratorResponse
+import team.b2.bingojango.domain.refrigerator.model.QRefrigerator.refrigerator
 import team.b2.bingojango.domain.refrigerator.model.Refrigerator
 import team.b2.bingojango.domain.refrigerator.model.RefrigeratorStatus
 import team.b2.bingojango.domain.refrigerator.repository.RefrigeratorRepository
@@ -72,11 +73,10 @@ class RefrigeratorService(
     @Transactional
     fun joinRefrigeratorByPassword(userPrincipal: UserPrincipal, request: JoinByPasswordRequest): RefrigeratorResponse {
         val user = entityFinder.getUser(userPrincipal.id)
-        //확인사항1:
         val refrigerator =
             refrigeratorRepository.findByName(request.name) ?: throw ModelNotFoundException("Refrigerator")
-        //확인사항2:
         if (refrigerator.password != request.password) throw IllegalArgumentException("냉장고의 비밀번호가 일치하지 않습니다.")
+        if (memberRepository.existsByUserAndRefrigerator(user, refrigerator)) throw IllegalStateException("이미 해당 냉장고에 참여하셨습니다.")
 
         val chatRoom = chatRoomService.getChatRoom(refrigerator)
         memberRepository.save(Member.toEntity(user, MemberRole.MEMBER, refrigerator, chatRoom))
@@ -101,6 +101,7 @@ class RefrigeratorService(
         val user = entityFinder.getUser(userPrincipal.id)
         val mail = mailRepository.findByCode(request.invitationCode) ?: throw ModelNotFoundException("Mail")
         val refrigerator = mail.refrigerator
+        if (memberRepository.existsByUserAndRefrigerator(user, refrigerator)) throw IllegalStateException("이미 해당 냉장고에 참여하셨습니다.")
         val chatRoom = chatRoomService.getChatRoom(refrigerator)
 
         memberRepository.save(Member.toEntity(user, MemberRole.MEMBER, refrigerator, chatRoom))

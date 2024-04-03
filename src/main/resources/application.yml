@@ -1,6 +1,6 @@
 # Server-Port
 server:
-  port: 8080
+  port: 80
 
 root:
   uri: ${ROOT_URI}

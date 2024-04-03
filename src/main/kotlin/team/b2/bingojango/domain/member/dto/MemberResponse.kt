@@ -7,5 +7,7 @@ data class MemberResponse(
     val name: String,
     val role: MemberRole,
     val memberId: Long,
-    val createdAt: ZonedDateTime
+    val createdAt: ZonedDateTime,
+    val imageUrl: String?,
+    val userId: Long,
 )

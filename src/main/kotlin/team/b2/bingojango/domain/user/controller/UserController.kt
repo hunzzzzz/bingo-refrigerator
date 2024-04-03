@@ -98,7 +98,7 @@ class UserController(
     @PatchMapping("/change/profile")
     fun updateProfile(
         @AuthenticationPrincipal userPrincipal: UserPrincipal,
-        @RequestBody profileUpdateRequest: ProfileUpdateRequest
+        @RequestBody @Valid profileUpdateRequest: ProfileUpdateRequest
     ): ResponseEntity<String> {
         userService.updateProfile(userPrincipal, profileUpdateRequest)
         return ResponseEntity.status(HttpStatus.OK).build()

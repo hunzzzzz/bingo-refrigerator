@@ -22,7 +22,7 @@ class FoodRepositoryImpl : QueryDslSupport(), CustomFoodRepository {
         keyword: String?
     ): Page<Food> {
         val whereClause = BooleanBuilder()
-        val pageable: PageRequest = PageRequest.of(page, 10, Sort.by(sort.toString()))
+        val pageable: PageRequest = PageRequest.of(page - 1, 10, Sort.by(sort.toString())) //0페이지가 아닌 1페이지 부터 시작하도록 함.
 
         refrigeratorId.let { whereClause.and(food.refrigerator.id.eq(refrigeratorId)) }
         category?.let { whereClause.and(food.category.eq(category)) } //카테고리와 동일한 음식

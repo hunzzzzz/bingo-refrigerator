@@ -41,13 +41,14 @@ class VoteService(
 
     /*
         [API] 현재 공동구매 목록에 대한 투표 시작
-            - 검증 조건 1 : 공동구매를 신청한 회원 본인만 투표를 시작할 수 있음
+            - 검증 조건 1 : 공동구매를 신청한 회원 본인만 투표를 시작할 수 있음 [X] -> STAFF 모두 가능
             - 검증 조건 2 : 공동구매 목록에 물품이 존재하지 않는 경우, 투표를 시작할 수 없음
             - 검증 조건 3 : STAFF 의 수가 1명인 경우, 투표 과정을 생략하고 현재 Purchase 의 status 를 APPROVED 로 변경
      */
     fun startVote(userPrincipal: UserPrincipal, refrigeratorId: Long, voteRequest: VoteRequest) =
         getCurrentPurchase(refrigeratorId).let {
-            if (it.proposedBy != userPrincipal.id)
+//            if (it.proposedBy != userPrincipal.id)
+            if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
                 throw InvalidRoleException()
             else if (purchaseProductRepository.countByPurchase(it) == 0L)
                 throw UnableToStartVoteException()

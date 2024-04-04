@@ -23,9 +23,10 @@ class MailService(
     fun sendInvitationCode(refrigeratorId: Long, email: String): MailResponse {
         val refrigerator = entityFinder.getRefrigerator(refrigeratorId)
         if (refrigerator.status != RefrigeratorStatus.NORMAL) throw ModelNotFoundException("Refrigerator")
-        val code = mailUtility.sendMail(email)
         val userWithEmailExists = userRepository.existsByEmail(email)
         if (!userWithEmailExists) throw IllegalArgumentException("해당 이메일을 가진 유저가 존재하지 않습니다.")
+
+        val code = mailUtility.sendMail(email)
 
         mailRepository.save(Mail.toEntity(refrigerator, email, code))
 

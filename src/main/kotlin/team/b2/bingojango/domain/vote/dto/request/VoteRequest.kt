@@ -22,7 +22,7 @@ data class VoteRequest(
         description = description,
         dueDate = convertStringDateTimeFromZonedDateTime(dueDate),
         refrigerator = refrigerator,
-        voters = mutableSetOf(member),
+        voters = mutableSetOf(),
         purchase = purchase
     )
 }

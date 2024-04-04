@@ -136,6 +136,7 @@ class PurchaseService(
             - 검증 조건 1 : 해당 공동구매를 올린 사람만 삭제를 할 수 있음 [X]
             - 검증 조건 2 : 현재 공동구매에 존재하는 식품만 삭제할 수 있음
             - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 삭제할 수 없음
+            - 검증 조건 4 : 같이구매 목록에 아무런 식품도 남지 않은 경우, 해당 같이구매 자체를 삭제
      */
     fun deleteFoodFromPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, productId: Long) {
 //        if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
@@ -154,6 +155,11 @@ class PurchaseService(
                 purchase = getCurrentPurchase(refrigeratorId)
             ) ?: throw ModelNotFoundException("식품")
         )
+
+        getCurrentPurchase(refrigeratorId).let {
+            if (purchaseProductRepository.countByPurchase(it) == 0L)
+                purchaseRepository.delete(it)
+        }
     }
 
     // [API] 현재 진행 중인 Purchase 를 출력

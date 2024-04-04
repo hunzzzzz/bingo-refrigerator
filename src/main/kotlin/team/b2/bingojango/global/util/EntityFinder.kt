@@ -42,4 +42,8 @@ class EntityFinder(
 
     fun getProduct(productId: Long) =
         productRepository.findByIdOrNull(productId) ?: throw ModelNotFoundException("상품")
+
+    fun getProductByFoodAndRefrigerator(foodId: Long, refrigeratorId: Long) =
+        productRepository.findByFoodAndRefrigerator(getFood(foodId), getRefrigerator(refrigeratorId))
+            ?: throw ModelNotFoundException("상품")
 }

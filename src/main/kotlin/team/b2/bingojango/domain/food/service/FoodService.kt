@@ -20,8 +20,8 @@ import team.b2.bingojango.global.exception.cases.AlreadyExistsFoodException
 import team.b2.bingojango.global.exception.cases.InvalidCredentialException
 import team.b2.bingojango.global.exception.cases.ModelNotFoundException
 import team.b2.bingojango.global.security.util.UserPrincipal
+import team.b2.bingojango.global.util.EntityFinder
 import team.b2.bingojango.global.util.ZonedDateTimeConverter
-
 
 @Service
 @Transactional
@@ -30,6 +30,7 @@ class FoodService(
     private val refrigeratorRepository: RefrigeratorRepository,
     private val memberRepository: MemberRepository,
     private val userRepository: UserRepository,
+    private val entityFinder: EntityFinder
 ) {
     /*
         [API] 음식 조회
@@ -148,6 +149,8 @@ class FoodService(
     fun deleteFood(userPrincipal: UserPrincipal, refrigeratorId: Long, foodId: Long) {
         validateAccessToRefrigerator(userPrincipal, refrigeratorId)
         val food = findFood(refrigeratorId, foodId)
+        val product = entityFinder.getProductByFoodAndRefrigerator(foodId, refrigeratorId)
+        product.updateWhenDeleteFood()
         foodRepository.delete(food)
     }
 
@@ -169,6 +172,5 @@ class FoodService(
     private fun findFood(refrigeratorId: Long, foodId: Long): Food {
         return foodRepository.findByIdAndRefrigeratorId(foodId, refrigeratorId) ?: throw ModelNotFoundException("Food")
     }
-
 
 }

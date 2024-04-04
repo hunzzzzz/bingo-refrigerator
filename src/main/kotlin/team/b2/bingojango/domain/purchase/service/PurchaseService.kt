@@ -6,7 +6,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import team.b2.bingojango.domain.food.model.Food
-import team.b2.bingojango.domain.member.model.MemberRole
 import team.b2.bingojango.domain.product.model.Product
 import team.b2.bingojango.domain.product.repository.ProductRepository
 import team.b2.bingojango.domain.purchase.dto.response.AddNewFoodInPurchaseRequest
@@ -35,18 +34,18 @@ class PurchaseService(
 ) {
     /*
         [API] 해당 식품을 n개 만큼 공동구매 신청
-            - 검증 조건 1 : 관리자(STAFF)만 공동구매를 신청할 수 있음
-            - 검증 조건 2 : 다른 관리자가 시작한 공동구매가 있는 경우 신청할 수 없음
+            - 검증 조건 1 : 관리자(STAFF)만 공동구매를 신청할 수 있음 [X]
+            - 검증 조건 2 : 다른 관리자가 시작한 공동구매가 있는 경우 신청할 수 없음 [X]
             - 검증 조건 3 : 현재 공동구매 중인 식품은 추가할 수 없음
             - 검증 조건 4 : 이미 투표가 시작된 공동구매에 식품을 추가할 수 없음
     */
     fun addFoodToPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, foodId: Long, count: Int) =
         getCurrentPurchase(userPrincipal, refrigeratorId).let {
-            if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
-                throw InvalidRoleException()
-            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
-                throw AlreadyHaveActivePurchaseException()
-            else if (purchaseProductRepository.findAllByPurchase(getCurrentPurchase(refrigeratorId))
+//            if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
+//                throw InvalidRoleException()
+//            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
+//                throw AlreadyHaveActivePurchaseException()
+            if (purchaseProductRepository.findAllByPurchase(getCurrentPurchase(refrigeratorId))
                     .map { purchaseProduct -> purchaseProduct.product.food }
                     .contains(entityFinder.getFood(foodId))
             ) throw AlreadyInPurchaseException()
@@ -69,8 +68,8 @@ class PurchaseService(
 
     /*
             [API] 새로운 식품을 n개 만큼 공동구매 신청
-            - 검증 조건 1 : 관리자(STAFF)만 공동구매를 신청할 수 있음
-            - 검증 조건 2 : 다른 관리자가 시작한 공동구매가 있는 경우 신청할 수 없음
+            - 검증 조건 1 : 관리자(STAFF)만 공동구매를 신청할 수 있음 [X]
+            - 검증 조건 2 : 다른 관리자가 시작한 공동구매가 있는 경우 신청할 수 없음 [X]
             - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 추가할 수 없음
      */
     fun addNewFoodToPurchase(
@@ -79,11 +78,11 @@ class PurchaseService(
         request: AddNewFoodInPurchaseRequest
     ) =
         getCurrentPurchase(userPrincipal, refrigeratorId).let {
-            if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
-                throw InvalidRoleException()
-            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
-                throw AlreadyHaveActivePurchaseException()
-            else if (voteRepository.existsByPurchaseAndRefrigerator(
+//            if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
+//                throw InvalidRoleException()
+//            else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE) && getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
+//                throw AlreadyHaveActivePurchaseException()
+            if (voteRepository.existsByPurchaseAndRefrigerator(
                     purchase = getCurrentPurchase(refrigeratorId),
                     refrigerator = entityFinder.getRefrigerator(refrigeratorId)
                 )
@@ -111,14 +110,15 @@ class PurchaseService(
 
     /*
         [API] 공동구매 목록에서 특정 식품 개수 수정
-            - 검증 조건 1 : 해당 공동구매를 올린 사람만 수정을 할 수 있음
+            - 검증 조건 1 : 해당 공동구매를 올린 사람만 수정을 할 수 있음 [X]
             - 검증 조건 2 : 현재 공동구매에 존재하는 식품만 수정할 수 있음
             - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 수정할 수 없음
     */
     fun updateFoodInPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, productId: Long, count: Int) {
-        if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
-            throw InvalidRoleException()
-        else if (voteRepository.existsByPurchaseAndRefrigerator(
+//        if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
+//        if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
+//            throw InvalidRoleException()
+        if (voteRepository.existsByPurchaseAndRefrigerator(
                 purchase = getCurrentPurchase(refrigeratorId),
                 refrigerator = entityFinder.getRefrigerator(refrigeratorId)
             )
@@ -133,14 +133,15 @@ class PurchaseService(
 
     /*
         [API] 공동구매 목록에서 특정 식품 삭제
-            - 검증 조건 1 : 해당 공동구매를 올린 사람만 삭제를 할 수 있음
+            - 검증 조건 1 : 해당 공동구매를 올린 사람만 삭제를 할 수 있음 [X]
             - 검증 조건 2 : 현재 공동구매에 존재하는 식품만 삭제할 수 있음
             - 검증 조건 3 : 이미 투표가 시작된 공동구매에 식품을 삭제할 수 없음
      */
     fun deleteFoodFromPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, productId: Long) {
-        if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
-            throw InvalidRoleException()
-        else if (voteRepository.existsByPurchaseAndRefrigerator(
+//        if (getCurrentPurchase(refrigeratorId).proposedBy != userPrincipal.id)
+//        if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
+//            throw InvalidRoleException()
+        if (voteRepository.existsByPurchaseAndRefrigerator(
                 purchase = getCurrentPurchase(refrigeratorId),
                 refrigerator = entityFinder.getRefrigerator(refrigeratorId)
             )
@@ -183,13 +184,13 @@ class PurchaseService(
 
     /*
         [API] 이전 공동구매와 같은 PurchaseProduct 가 담긴 새로운 Purchase 를 생성
-            - 검증 조건 1 : 관리자(STAFF)만 공동구매를 신청할 수 있음
+            - 검증 조건 1 : 관리자(STAFF)만 공동구매를 신청할 수 있음 [X]
             - 검증 조건 2 : 이미 진행 중인 공동구매가 있는 경우 신청할 수 없음
      */
     fun copyPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, purchaseId: Long) {
-        if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
-            throw InvalidRoleException()
-        else if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE))
+//        if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
+//            throw InvalidRoleException()
+        if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE))
             throw AlreadyHaveActivePurchaseException()
 
         val currentPurchase = purchaseRepository.findByIdOrNull(purchaseId) ?: throw ModelNotFoundException("공동구매")

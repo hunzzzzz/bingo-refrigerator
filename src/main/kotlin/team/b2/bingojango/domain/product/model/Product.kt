@@ -23,7 +23,7 @@ class Product(
     @Column(name = "product_id", nullable = false)
     val id: Long? = null
 
-    fun updateWhenDeleteFood(){
+    fun updateFoodInNullWhenDeleteIt(){
         this.food = null
     }
 }

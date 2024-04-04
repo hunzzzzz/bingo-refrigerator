@@ -52,6 +52,8 @@ class VoteService(
                 throw InvalidRoleException()
             else if (purchaseProductRepository.countByPurchase(it) == 0L)
                 throw UnableToStartVoteException()
+            else if (voteRepository.existsByPurchase(getCurrentPurchaseOnVote(refrigeratorId)))
+                throw AlreadyHaveActiveVoteException()
 //            else if (getNumberOfStaff(refrigeratorId) == 1L)
 //                it.updateStatus(PurchaseStatus.APPROVED)
             else

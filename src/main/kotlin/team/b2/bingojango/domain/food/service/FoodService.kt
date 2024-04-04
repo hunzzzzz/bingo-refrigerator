@@ -150,7 +150,8 @@ class FoodService(
         validateAccessToRefrigerator(userPrincipal, refrigeratorId)
         val food = findFood(refrigeratorId, foodId)
         val product = entityFinder.getProductByFoodAndRefrigerator(foodId, refrigeratorId)
-        product.updateWhenDeleteFood()
+
+        product.updateFoodInNullWhenDeleteIt()
         foodRepository.delete(food)
     }
 

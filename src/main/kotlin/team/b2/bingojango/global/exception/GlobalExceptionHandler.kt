@@ -68,6 +68,11 @@ class GlobalExceptionHandler(
     fun handleAlreadyHaveActivePurchaseException(e: AlreadyHaveActivePurchaseException) =
         ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, e))
 
+    // 현재 진행 중인 투표가 존재
+    @ExceptionHandler(AlreadyHaveActiveVoteException::class)
+    fun handleAlreadyHaveActiveVoteException(e: AlreadyHaveActiveVoteException) =
+        ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, e))
+
     // 현재 진행 중인 공동구매 없음
     @ExceptionHandler(NoCurrentPurchaseException::class)
     fun handleNoCurrentPurchaseException(e: NoCurrentPurchaseException) =
@@ -123,7 +128,6 @@ class GlobalExceptionHandler(
     @ExceptionHandler(MustAssignException::class)
     fun handleMustAssignException(e: MustAssignException) =
         ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, e))
-
 
     private fun getErrorResponse(httpStatus: HttpStatus, e: Exception) = when (httpStatus) {
         HttpStatus.BAD_REQUEST -> ErrorResponse(

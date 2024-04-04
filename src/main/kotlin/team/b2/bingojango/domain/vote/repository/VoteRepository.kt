@@ -10,5 +10,7 @@ import team.b2.bingojango.domain.vote.model.Vote
 interface VoteRepository : JpaRepository<Vote, Long> {
     fun existsByPurchaseAndRefrigerator(purchase: Purchase, refrigerator: Refrigerator): Boolean
 
+    fun existsByPurchase(purchase: Purchase): Boolean
+
     fun findByPurchase(purchase: Purchase): Vote?
 }

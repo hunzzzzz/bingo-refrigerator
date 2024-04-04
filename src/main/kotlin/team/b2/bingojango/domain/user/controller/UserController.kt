@@ -56,7 +56,7 @@ class UserController(
     @PreAuthorize("isAnonymous()")
     @PostMapping("/signup")
     fun signUp(
-        @RequestBody signUpRequest: SignUpRequest
+        @RequestBody @Valid signUpRequest: SignUpRequest
     ): ResponseEntity<UserResponse> {
         return ResponseEntity
             .created(URI.create("/login"))

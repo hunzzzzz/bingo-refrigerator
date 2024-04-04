@@ -171,6 +171,7 @@ class PurchaseService(
     // [API] 현재까지 진행된 모든 Purchase 목록을 출력
     fun showPurchaseList(refrigeratorId: Long, status: PurchaseStatus?, sort: PurchaseSort?, page: Int) =
         purchaseRepository.searchPurchase(
+            refrigerator = entityFinder.getRefrigerator(refrigeratorId),
             status = status,
             pageable = PageRequest.of(page - 1, 5, Sort.by(sort?.name))
         ).map {

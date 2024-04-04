@@ -6,16 +6,19 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import team.b2.bingojango.domain.purchase.model.PurchaseStatus
 import team.b2.bingojango.domain.purchase.model.QPurchase
+import team.b2.bingojango.domain.refrigerator.model.Refrigerator
 import team.b2.bingojango.global.querydsl.QueryDslSupport
 
 @Repository
 class PurchaseRepositoryImpl : QueryDslSupport(), CustomPurchaseRepository {
     private val purchase = QPurchase.purchase
     override fun searchPurchase(
+        refrigerator: Refrigerator,
         status: PurchaseStatus?,
         pageable: Pageable
     ) =
         BooleanBuilder().let {
+            it.and(purchase.refrigerator.eq(refrigerator))
             status?.let { status -> it.and(purchase.status.eq(status)) }
 
             PageImpl(

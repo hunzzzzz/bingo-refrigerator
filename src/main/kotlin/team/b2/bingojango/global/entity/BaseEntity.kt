@@ -2,6 +2,7 @@ package team.b2.bingojango.global.entity
 
 import jakarta.persistence.*
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @MappedSuperclass
@@ -15,12 +16,12 @@ abstract class BaseEntity {
 
     @PrePersist
     fun prePersist() {
-        createdAt = ZonedDateTime.now()
-        updatedAt = ZonedDateTime.now()
+        createdAt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
+        updatedAt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
     }
 
     @PreUpdate
     fun preUpdate() {
-        updatedAt = ZonedDateTime.now()
+        updatedAt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
     }
 }

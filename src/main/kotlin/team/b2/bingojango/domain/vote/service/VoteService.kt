@@ -41,24 +41,32 @@ class VoteService(
 
     /*
         [API] 현재 공동구매 목록에 대한 투표 시작
-            - 검증 조건 1 : 공동구매를 신청한 회원 본인만 투표를 시작할 수 있음 [X] -> STAFF 모두 가능
+            - 검증 조건 1 : 공동구매를 신청한 STAFF 본인만 투표를 시작할 수 있음 [폐기] -> 모든 STAFF 가능
             - 검증 조건 2 : 공동구매 목록에 물품이 존재하지 않는 경우, 투표를 시작할 수 없음
-            - 검증 조건 3 : STAFF 의 수가 1명인 경우, 투표 과정을 생략하고 현재 Purchase 의 status 를 APPROVED 로 변경 [X]
+            - 검증 조건 3 : 현재 진행 중인 투표가 존재하는 경우, 투표를 시작할 수 없음
+            - 검증 조건 4 : STAFF 의 수가 1명인 경우, 투표 과정을 생략하고 현재 Purchase 의 status 를 APPROVED 로 변경 [폐기]
      */
-    fun startVote(userPrincipal: UserPrincipal, refrigeratorId: Long, voteRequest: VoteRequest) =
-        getCurrentPurchase(refrigeratorId).let {
-//            if (it.proposedBy != userPrincipal.id)
+    fun startVote(userPrincipal: UserPrincipal, refrigeratorId: Long, voteRequest: VoteRequest) {
+        fun isStaff() {
             if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
                 throw InvalidRoleException()
-            else if (purchaseProductRepository.countByPurchase(it) == 0L)
-                throw UnableToStartVoteException()
-            else if (voteRepository.existsByPurchase(getCurrentPurchaseOnVote(refrigeratorId)))
-                throw AlreadyHaveActiveVoteException()
-//            else if (getNumberOfStaff(refrigeratorId) == 1L)
-//                it.updateStatus(PurchaseStatus.APPROVED)
-            else
-                it.updateStatus(PurchaseStatus.ON_VOTE)
+        }
 
+        fun ableToStartVote() {
+            if (purchaseProductRepository.countByPurchase(getCurrentPurchase(refrigeratorId)) == 0L)
+                throw UnableToStartVoteException()
+        }
+
+        fun checkCurrentVote() {
+            if (purchaseRepository.existsByStatusAndRefrigerator(PurchaseStatus.ON_VOTE, entityFinder.getRefrigerator(refrigeratorId)))
+                throw AlreadyHaveActiveVoteException()
+        }
+
+        isStaff()
+        ableToStartVote()
+        checkCurrentVote()
+
+        getCurrentPurchase(refrigeratorId).let {
             voteRepository.save(
                 voteRequest.to(
                     refrigerator = entityFinder.getRefrigerator(refrigeratorId),
@@ -66,8 +74,10 @@ class VoteService(
                     purchase = it
                 )
             )
-            Unit
+
+            it.updateStatus(PurchaseStatus.ON_VOTE)
         }
+    }
 
     /*
         [API] 투표 실시
@@ -106,7 +116,7 @@ class VoteService(
     private fun getCurrentPurchaseOnVote(refrigeratorId: Long) =
         purchaseRepository.findAllByRefrigerator(entityFinder.getRefrigerator(refrigeratorId))
             .firstOrNull { it.status == PurchaseStatus.ON_VOTE }
-            ?: throw NoCurrentPurchaseException()
+            ?: throw NoCurrentVoteException()
 
     // [내부 메서드] 현재 진행 중인 Purchase 에 대한 Vote 를 리턴
     private fun getCurrentVote(refrigeratorId: Long) =

@@ -197,7 +197,7 @@ class PurchaseService(
     fun copyPurchase(userPrincipal: UserPrincipal, refrigeratorId: Long, purchaseId: Long) {
 //        if (entityFinder.getMember(userPrincipal.id, refrigeratorId).role != MemberRole.STAFF)
 //            throw InvalidRoleException()
-        if (purchaseRepository.existsByStatus(PurchaseStatus.ACTIVE))
+        if (purchaseRepository.existsByStatusAndRefrigerator(PurchaseStatus.ACTIVE, entityFinder.getRefrigerator(refrigeratorId)))
             throw AlreadyHaveActivePurchaseException()
 
         val currentPurchase = purchaseRepository.findByIdOrNull(purchaseId) ?: throw ModelNotFoundException("공동구매")

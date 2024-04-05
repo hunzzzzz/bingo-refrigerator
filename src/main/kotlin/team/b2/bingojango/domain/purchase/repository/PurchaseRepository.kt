@@ -10,5 +10,5 @@ import team.b2.bingojango.domain.refrigerator.model.Refrigerator
 interface PurchaseRepository : JpaRepository<Purchase, Long>, CustomPurchaseRepository {
     fun findAllByRefrigerator(refrigerator: Refrigerator): List<Purchase>
 
-    fun existsByStatus(status: PurchaseStatus): Boolean
+    fun existsByStatusAndRefrigerator(status: PurchaseStatus, refrigerator: Refrigerator): Boolean
 }
